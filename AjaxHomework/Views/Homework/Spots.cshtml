@@ -1,0 +1,54 @@
+﻿@{
+    ViewData["Title"] = "Spots";
+}
+
+<h1>Spots</h1>
+
+<div id="cardDiv">
+</div>
+
+@section Styles {
+    <style>
+        #cardDiv {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+        }
+        #pdis{
+            height:15rem;
+            overflow-x:scroll;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        const cardDiv = document.getElementById("cardDiv");
+
+        const loadSpots = async () => {
+            const res = await fetch(`@Url.Content("~/api/GetSpots")`);
+            const data = await res.json();
+
+            console.log(data);
+
+            const spots = data.map((spot, index) => {
+                return `
+                                <div class="card" style="width: 18rem; height:35rem; margin:10px;">
+                                          <img class="card-img-top" src="${spot.imagePath}" alt="Card image cap" style="object-contain:cover; width:18rem; height:12rem;" >
+                                  <div class="card-body">
+                            <h5 class="card-title">${spot.spotTitle}</h5>
+                                    <p class="card-text" id="pdis">${spot.spotDescription}</p>
+                            <a href="#" class="btn btn-primary">Go somewhere</a>
+                          </div>
+                        </div>
+                                `
+            });
+
+
+            cardDiv.innerHTML = spots.join("");
+        }
+
+        loadSpots();
+    </script>
+}
