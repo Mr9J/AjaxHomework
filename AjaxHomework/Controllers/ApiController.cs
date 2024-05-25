@@ -80,5 +80,46 @@ namespace AjaxHomework.Controllers
 
             return Content(result.ToString(), "text/plain", System.Text.Encoding.UTF8);
         }
+
+        [HttpPost]
+        public IActionResult SearchSpots([FromBody] SearchDTO x)
+        {
+            var spots = x.categoryId == 0 ? context.SpotImagesSpots : context.SpotImagesSpots.Where(s => s.CategoryId == x.categoryId);
+
+            if (!string.IsNullOrEmpty(x.keyword))
+            {
+                spots = spots.Where(s => s.SpotTitle!.Contains(x.keyword) || s.SpotDescription!.Contains(x.keyword));
+            }
+
+            switch (x.sortBy)
+            {
+                case "spotTitle":
+                    spots = x.sortType == "asc" ? spots.OrderBy(s => s.SpotTitle) : spots.OrderByDescending(s => s.SpotTitle);
+                    break;
+                case "categoryId":
+                    spots = x.sortType == "asc" ? spots.OrderBy(s => s.CategoryId) : spots.OrderByDescending(s => s.CategoryId);
+                    break;
+                default:
+                    spots = x.sortType == "asc" ? spots.OrderBy(s => s.SpotId) : spots.OrderByDescending(s => s.SpotId);
+                    break;
+            }
+
+            int totalCount = spots.Count();
+
+            int pageSize = x.pageSize;
+
+            int page = x.page;
+
+            int totalPages = (int)Math.Ceiling((decimal)totalCount / pageSize);
+
+            spots = spots.Skip((page - 1) * pageSize).Take(pageSize);
+
+            SpotsPagingDTO spotsPaging = new SpotsPagingDTO();
+            spotsPaging.TotalCount = totalCount;
+            spotsPaging.TotalPages = totalPages;
+            spotsPaging.SpotsResult = spots.ToList();
+
+            return Json(spotsPaging);
+        }
     }
 }

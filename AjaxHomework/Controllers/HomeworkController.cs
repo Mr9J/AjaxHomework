@@ -23,5 +23,10 @@ namespace AjaxHomework.Controllers
         {
             return View();
         }
+
+        public IActionResult SpotsSearch()
+        {
+            return View();
+        }
     }
 }

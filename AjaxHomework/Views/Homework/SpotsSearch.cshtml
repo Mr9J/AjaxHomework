@@ -1,0 +1,128 @@
+﻿@{
+    ViewData["Title"] = "SpotsSearch";
+}
+
+<h1>SpotsSearch</h1>
+<div class="row mb-3">
+    <div class="form-floating col-2">
+        <select class="form-select" id="selectCategory">
+            <option selected disabled>Choose Category</option>
+        </select>
+        <label for="floatingSelect">Category</label>
+    </div>
+    <div class="dropdown col-1">
+        <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Sort by
+        </button>
+        <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="#" value="spotTitle">Spot Title</a></li>
+            <li><a class="dropdown-item" href="#" value="categoryId">Category Id</a></li>
+            <li><a class="dropdown-item" href="#">None</a></li>
+        </ul>
+    </div>
+    <div class="col-1">
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault1">
+            <label class="form-check-label" for="flexRadioDefault1">
+                Asc
+            </label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault2" checked>
+            <label class="form-check-label" for="flexRadioDefault2">
+                Dec
+            </label>
+        </div>
+    </div>
+    <div class="col-5">
+        <nav>
+            <ul class="pagination" id="selectPage">
+            </ul>
+        </nav>
+    </div>
+    <div class="col-3">
+        <input type="search" placeholder="搜尋景點資料" class="form-control" id="inputSearch" />
+    </div>
+</div>
+<div class="row row-cols-1 row-cols-md-3 g-4" id="divResult">
+</div>
+
+@section Styles {
+    <style></style>
+}
+
+@section Scripts {
+    <script>
+        const divResult = document.getElementById("divResult");
+        const selectPage = document.getElementById("selectPage");
+        const selectCategory = document.getElementById("selectCategory");
+        const inputSearch = document.getElementById("inputSearch");
+
+        const searchData = {
+            "categoryId": 0,
+            "keyword": "公園",
+            "page": 1,
+            "pageSize": 9,
+            "sortBy": "SpotId",
+            "sortType": "asc"
+        };
+
+        const pagingHandler = (e) => {
+            searchData.page = e;
+            loadSpots();
+        }
+
+        inputSearch.addEventListener('keydown', (e) => {
+            if (e.keyCode === 13) {
+                searchData.keyword = e.target.value;
+                loadSpots();
+            }
+        })
+
+        const loadSpots = async () => {
+            const url = `@Url.Content("~/api/SearchSpots")`
+
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(searchData)
+            });
+
+            const data = await res.json();
+
+            console.log(data);
+
+            const spots = data.spotsResult.map((spot) => {
+                const { spotId, spotTitle, spotDescription, address, spotImage } = spot;
+                return (`
+                        <div class="col">
+                        <div class="card">
+                        <img src="${spotImage}" class="card-img-top" alt="${spotTitle}">
+                        <div class="card-body">
+                        <h5 class="card-title">${spotId} ${spotTitle}</h5>
+                        <p class="card-text">${spotDescription.length <= 100 ? spotDescription : spotDescription.substring(0, 100)}</p>
+                        </div>
+                        <div class="card-footer">
+                        <small class="text-body-secondary">${address}</small>
+                        </div>
+                        </div>
+                        </div>
+                        `);
+            })
+
+            divResult.innerHTML = spots.join('');
+
+            let liPages = "";
+            for (let i = 1; i <= data.totalPages; i++) {
+                liPages += `<li class="page-item" onclick="pagingHandler(${i})"><a class="page-link">${i}</a></li>`
+            }
+
+            selectPage.innerHTML = liPages;
+        }
+
+        loadSpots();
+
+    </script>
+}
