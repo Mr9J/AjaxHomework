@@ -6,7 +6,7 @@
 <div class="row mb-3">
     <div class="form-floating col-2">
         <select class="form-select" id="selectCategory">
-            <option selected disabled>Choose Category</option>
+            <option selected disabled>Category</option>
             <option value="1">1</option>
             <option value="2">2</option>
             <option value="3">3</option>
@@ -18,39 +18,31 @@
             <option value="9">9</option>
             <option value="10">10</option>
         </select>
-        <label for="floatingSelect">Category</label>
+        <label for="selectCategory">Category</label>
     </div>
-    <div class="dropdown col-1">
-        <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-            Sort by
-        </button>
-        <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="#" value="spotTitle">Spot Title</a></li>
-            <li><a class="dropdown-item" href="#" value="categoryId">Category Id</a></li>
-            <li><a class="dropdown-item" href="#">None</a></li>
-        </ul>
+    <div class="form-floating col-2">
+        <select class="form-select" id="selectSortBy">
+            <option selected disabled>Sort by</option>
+            <option value="spotTitle">spot title</option>
+            <option value="categoryId">category Id</option>
+        </select>
+        <label for="selectSortBy">Category</label>
     </div>
-    <div class="col-1">
-        <div class="form-check">
-            <input class="form-check-input" type="radio" name="flexRadioDefault" id="radio1">
-            <label class="form-check-label" for="flexRadioDefault1">
-                Asc
-            </label>
-        </div>
-        <div class="form-check">
-            <input class="form-check-input" type="radio" name="flexRadioDefault" id="radio2" checked>
-            <label class="form-check-label" for="flexRadioDefault2">
-                Dec
-            </label>
-        </div>
+    <div class="form-floating col-1">
+        <select class="form-select" id="selectSortType">
+            <option selected disabled>sort type</option>
+            <option value="asc">asc</option>
+            <option value="dec">dec</option>
+        </select>
+        <label for="selectSortType">Sort</label>
     </div>
-    <div class="col-5">
+    <div class="col-4">
         <nav>
             <ul class="pagination" id="selectPage">
             </ul>
         </nav>
     </div>
-    <div class="col-3">
+    <div class="col-2">
         <input type="search" placeholder="搜尋景點資料" class="form-control" id="inputSearch" />
     </div>
 </div>
@@ -67,8 +59,9 @@
         const selectPage = document.getElementById("selectPage");
         const selectCategory = document.getElementById("selectCategory");
         const inputSearch = document.getElementById("inputSearch");
-        const radio1= document.getElementById("radio1");
-        const radio2 = document.getElementById("radio2");
+        const selectSortBy = document.getElementById("selectSortBy");
+        const selectSortType=document.getElementById("selectSortType")
+
 
         const searchData = {
             "categoryId": 0,
@@ -96,15 +89,16 @@
             loadSpots();
         })
 
-        radio1.addEventListener('change', (e) => {
-            if (e.target.checked) {
-                searchData.sortType = "asc";
-                loadSpots();
-            } else {
-                searchData.sortType = "desc";
-                loadSpots();
-            }
+        selectSortBy.addEventListener('change', (e) => {
+            searchData.sortBy = e.target.value;
+            loadSpots();
         })
+
+        selectSortType.addEventListener('change', (e) => {
+            searchData.sortType = e.target.value;
+            loadSpots();
+        })
+
 
         const loadSpots = async () => {
             const url = `@Url.Content("~/api/SearchSpots")`
@@ -124,19 +118,19 @@
             const spots = data.spotsResult.map((spot) => {
                 const { spotId, spotTitle, spotDescription, address, spotImage } = spot;
                 return (`
-                        <div class="col">
-                        <div class="card">
-                        <img src="${spotImage}" class="card-img-top" alt="${spotTitle}">
-                        <div class="card-body">
-                        <h5 class="card-title">${spotId} ${spotTitle}</h5>
-                        <p class="card-text">${spotDescription.length <= 100 ? spotDescription : spotDescription.substring(0, 100)}</p>
-                        </div>
-                        <div class="card-footer">
-                        <small class="text-body-secondary">${address}</small>
-                        </div>
-                        </div>
-                        </div>
-                        `);
+                                <div class="col">
+                                <div class="card">
+                                <img src="${spotImage}" class="card-img-top" alt="${spotTitle}">
+                                <div class="card-body">
+                                <h5 class="card-title">${spotId} ${spotTitle}</h5>
+                                <p class="card-text">${spotDescription.length <= 100 ? spotDescription : spotDescription.substring(0, 100)}</p>
+                                </div>
+                                <div class="card-footer">
+                                <small class="text-body-secondary">${address}</small>
+                                </div>
+                                </div>
+                                </div>
+                                `);
             })
 
             divResult.innerHTML = spots.join('');

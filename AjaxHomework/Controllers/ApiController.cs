@@ -1,4 +1,5 @@
 ﻿using AjaxHomework.Models;
+using AjaxHomework.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
@@ -34,42 +35,60 @@ namespace AjaxHomework.Controllers
             return Json(result);
         }
 
+        [HttpPost]
         public IActionResult Register(Member member, IFormFile avatar)
         {
-            if (string.IsNullOrEmpty(member.Name))
+            try
             {
-                member.Name = "guest";
+                if (string.IsNullOrEmpty(member.Name))
+                {
+                    member.Name = "guest";
+                }
+
+                if (avatar != null)
+                {
+                    string uploadPath = Path.Combine(hostEnvironment.WebRootPath, "uploads", avatar.FileName);
+                    string info = uploadPath;
+                    using (var fileStream = new FileStream(uploadPath, FileMode.Create))
+                    {
+                        avatar.CopyTo(fileStream);
+                    }
+
+                    byte[]? imgByte = null;
+                    using (var memoryStream = new MemoryStream())
+                    {
+                        avatar.CopyTo(memoryStream);
+                        imgByte = memoryStream.ToArray();
+                    }
+
+
+                    member.FileName = avatar.FileName;
+                    member.FileData = imgByte;
+                }
+
+                string hashedPassword = Hash.HashPassword(member.Password!);
+                member.Password = hashedPassword;
+
+                context.Members.Add(member);
+                context.SaveChanges();
+
+                return Ok("註冊成功");
+
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
             }
 
-            string uploadPath = Path.Combine(hostEnvironment.WebRootPath, "uploads", avatar.FileName);
-            string info = uploadPath;
-            using (var fileStream = new FileStream(uploadPath, FileMode.Create))
-            {
-                avatar.CopyTo(fileStream);
-            }
-
-            byte[]? imgByte = null;
-            using (var memoryStream = new MemoryStream())
-            {
-                avatar.CopyTo(memoryStream);
-                imgByte = memoryStream.ToArray();
-            }
 
 
-            member.FileName = avatar.FileName;
-            member.FileData = imgByte;
-            context.Members.Add(member);
-            context.SaveChanges();
-
-            return Content(info, "text/plain", System.Text.Encoding.UTF8);
-          
         }
 
         public IActionResult GetSpots()
         {
             var result = (from s in context.Spots
                           join si in context.SpotImages on s.SpotId equals si.SpotId
-                          select new {s.SpotTitle,s.SpotDescription, si.ImagePath});
+                          select new { s.SpotTitle, s.SpotDescription, si.ImagePath });
 
             return Json(result);
         }
